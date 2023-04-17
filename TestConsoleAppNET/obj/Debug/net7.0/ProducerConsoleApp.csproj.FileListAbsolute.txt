@@ -7,7 +7,6 @@ C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\C
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Configuration.dll
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Abstractions.dll
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Configuration.FileExtensions.dll
-C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Ini.dll
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.FileProviders.Abstractions.dll
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.FileProviders.Physical.dll
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.FileSystemGlobbing.dll
@@ -50,3 +49,12 @@ C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\obj\Debug\net7.0\P
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\obj\Debug\net7.0\ref\ProducerConsoleApp.dll
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Json.dll
 C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\appsettings.json
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Logging.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Logging.Configuration.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Logging.Console.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Options.dll
+C:\Users\Jox\source\repos\TestConsoleAppNET\TestConsoleAppNET\bin\Debug\net7.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll

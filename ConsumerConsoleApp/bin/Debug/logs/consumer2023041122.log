@@ -1,0 +1,20 @@
+2023-04-11 22:27:50.015 +03:00 [INF]{"MyContextName":{"Id":0,"StakeAmount":123,"WinAmount":null,"type":"Bet"}} Look at the properties
+2023-04-11 22:27:50.043 +03:00 [INF]{"MyContextName":{"Id":0,"StakeAmount":123,"WinAmount":null,"type":"Bet"}} They're still here
+2023-04-11 22:27:50.043 +03:00 [INF]{"SourceContext":"ConsumerConsoleApp.Services.KafkaConsumer"} I have a parameter with my class name!
+2023-04-11 22:27:50.088 +03:00 [DBG]{} Hi, this is a debug string. wow
+2023-04-11 22:27:50.088 +03:00 [ERR]{} Error! I have logged an error!
+2023-04-11 22:27:50.098 +03:00 [WRN]{} I'm about to create an exception!
+2023-04-11 22:27:50.116 +03:00 [FTL]{} Debugging an exception what ProducerConsoleApp.Models.Bet, {"Id":0,"StakeAmount":69,"WinAmount":null,"type":"Bet"}
+System.Exception: Big Exception happened
+   at ConsumerConsoleApp.Services.ExceptionThrower.DoIt() in C:\Users\Jox\source\repos\TestConsoleAppNET\ConsumerConsoleApp\Services\ExceptionThrower.cs:line 14
+   at ConsumerConsoleApp.Services.KafkaConsumer.StartConsuming() in C:\Users\Jox\source\repos\TestConsoleAppNET\ConsumerConsoleApp\Services\KafkaConsumer.cs:line 22
+2023-04-11 22:28:07.456 +03:00 [INF]{"MyContextName":{"Id":0,"StakeAmount":123,"WinAmount":null,"type":"Bet"}} Look at the properties
+2023-04-11 22:28:07.484 +03:00 [INF]{"MyContextName":{"Id":0,"StakeAmount":123,"WinAmount":null,"type":"Bet"}} They're still here
+2023-04-11 22:28:07.485 +03:00 [INF]{"SourceContext":"ConsumerConsoleApp.Services.KafkaConsumer"} I have a parameter with my class name!
+2023-04-11 22:28:07.523 +03:00 [DBG]{} Hi, this is a debug string. wow
+2023-04-11 22:28:07.523 +03:00 [ERR]{} Error! I have logged an error!
+2023-04-11 22:28:07.531 +03:00 [WRN]{} I'm about to create an exception!
+2023-04-11 22:28:07.549 +03:00 [FTL]{} Debugging an exception what ProducerConsoleApp.Models.Bet, {"Id":0,"StakeAmount":69,"WinAmount":null,"type":"Bet"}
+System.Exception: Big Exception happened
+   at ConsumerConsoleApp.Services.ExceptionThrower.DoIt() in C:\Users\Jox\source\repos\TestConsoleAppNET\ConsumerConsoleApp\Services\ExceptionThrower.cs:line 14
+   at ConsumerConsoleApp.Services.KafkaConsumer.StartConsuming() in C:\Users\Jox\source\repos\TestConsoleAppNET\ConsumerConsoleApp\Services\KafkaConsumer.cs:line 22

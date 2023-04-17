@@ -1,12 +1,11 @@
-﻿using Confluent.Kafka;
-using ConsumerConsoleApp.Services;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
+﻿using ConsumerConsoleApp.Services;
 using ProducerConsoleApp.Models;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.Data;
-using System.Text.Json;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
+using System.Net.Sockets;
+using Sentry;
 
 namespace ConsumerConsoleApp
 {
@@ -14,142 +13,74 @@ namespace ConsumerConsoleApp
     {
         static void Main(string[] args)
         {
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
+            //We do need file and logstash logging (or Beats with file logging)
+            //.NET doesn't provide a file logger (neither elasticsearch/logstash)
+            //We don't want to write our own
+            //Thus - we'll likely use a third party library
+            //Popular:
+            //log4net - is probably oldest? (2001) not much support for structured json logs, docs focused on old tech
+            //NLog - fast, can do strucutred, pretty old (2006), but more actively maintained than log4net
+            //Serilog - youngest (2013), build for structured logs, more modular than others, no XML configs, I picked this one. Also, bonus team uses it.
+            //There's probably more lightweight solutions for simpler logging, but we're not making many "simple" projects.
 
-            //Things to use...
-            //TODO: User secrets
-            //TODO: Action Filters for API
-            //TODO: Validation using attributes for API
-            //TODO: Benchmark how long it takes to consume https://github.com/dotnet/BenchmarkDotNet
-
-            //SqlConnection con = new SqlConnection(configuration.GetConnectionString("MSSQL"));
-
-            //SqlCommand cmd = new SqlCommand("SELECT * FROM [Events]", con);
-            //cmd.CommandType = CommandType.Text;
-            //con.Open();
-            //SqlDataReader rdr = cmd.ExecuteReader();
-
-            //while (rdr.Read())
+            //One way to initialize Sentry without Serilog
+            //using (SentrySdk.Init(o =>
             //{
-            //    Console.WriteLine(rdr.GetString("Team1"));
-            //}
-
-            /*
-             * TODO: Pick smallest time resolution (1 second? minute?)
-             * TODO: Maybe get the 10th biggest win for the top 10? What about time resolutions? 
-             * Might need to do it "top 10 this second". Or hour. 
-             * But practically it'll be top 10 today.
-             * 
-             * Gather per game:
-             *     - Bet Count
-             *     - Stake Sum
-             *     - Biggest 10 wins
-             *     - Win Sum
-             *     
-             *     Consider: queue management
-             *     
-             * DB Structure:
-             *    timestamp
-             *    bet count
-             *    stake sum
-             *    win sum
-             * 
-             */
-
-            string connectionString = configuration.GetConnectionString("MSSQL") ?? "";
-            StatisticsRepository repository = new(connectionString);
-
-            ImmutableArray<string> topics = ImmutableArray.Create("placed_bets", "settled_bets");
-            int loopsCount = 0;
-            int loopsLimit = 200;
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-            Console.CancelKeyPress += (_, e) => {
-                e.Cancel = true; // prevent the process from terminating.
-                cts.Cancel();
-            };
-
-            var kafkaConfig = configuration.GetSection("KafkaSettings").AsEnumerable(true);
-
-            ConcurrentDictionary<long, Dictionary<int, StatisticsUnit>> workingData = new();
-            /*
-             * generate/update StatisticsUnit
-             * when found a bet for a new second, with a delay add the dictionary at the new timestamp to a task to be written
-             * Async write/update to DB what's at the determined timestamp
-             * 
-             * So:
-             * 1. Find a bet for new timestamp
-             * 2. Create a task that will trigger after a delay
-             * 3. It will look at workingData at the given timestamp
-             * 4. It will take it to memory and delete from workingData (use locks, or ConcurrentDictionary)
-             * 5. It will write things to Database on another thread
-             * 
-             */
-
-            using (var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build())
-            {
-                consumer.Subscribe(topics);
-                try
-                {
-                    Console.WriteLine("Starting to listen...");
-                    while (true)
+            //    // Tells which project in Sentry to send events to:
+            //    o.Dsn = "https://examplePublicKey@o0.ingest.sentry.io/0";
+            //    // When configuring for the first time, to see what the SDK is doing:
+            //    o.Debug = false;
+            //    // Set traces_sample_rate to 1.0 to capture 100% of transactions for performance monitoring.
+            //    // We recommend adjusting this value in production.
+            //    o.TracesSampleRate = 1.0;
+            //}))
+            //{
+                var logger = new LoggerConfiguration()
+                    .MinimumLevel.Debug() //Default is Information. Verbose->Debug->Information->Warning->Error->Fatal (this is for Serilog, non-standard)
+                    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Warning) //Can raise the log level, never lower.  I don't see much use for console logging. Maybe for real-time displays in office
+                    .WriteTo.Async(writeTo => writeTo.File("../logs/consumerAsync.log")) // <<#<<#<<
+                    .WriteTo.File(
+                        path: "../logs/consumer.log", //Can go up folders
+                        rollingInterval: RollingInterval.Hour,
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}]{Properties:j} {Message:lj}{NewLine}{Exception}" //Added Properties
+                        )
+                    .WriteTo.File(new CompactJsonFormatter(), "../logs/consumerJSON.log")
+                    .WriteTo.Http("http://127.0.0.1/", 8192) //8192 byte queue limit (this sink batches multiple log entries into one request)
+                    .WriteTo.Udp("127.0.0.1", 31311, AddressFamily.InterNetwork) //For our UDP server
+                    .WriteTo.Sentry(o =>
                     {
-                        var cr = consumer.Consume(cts.Token);
-                        Bet? betInMessage = JsonSerializer.Deserialize<Bet>(cr.Message.Value);
-                        if (betInMessage != null)
-                        {
-                            long betTimeStamp = new DateTimeOffset(betInMessage.Created).ToUnixTimeSeconds();
-                            if (!workingData.TryGetValue(betTimeStamp, out Dictionary<int, StatisticsUnit>? timeDict))
-                            {
-                                timeDict = new();
-                                workingData[betTimeStamp] = timeDict;
-                                _ = DelayAction(() => WriteStatisticsToDb(betTimeStamp, ref workingData, repository));
-                            }
+                        //Will initialize main sentry SDK, an alternative way
+                        o.Dsn = "https://examplePublicKey@o0.ingest.sentry.io/0";
+                        // Store as breadcrumbs (default is Information)
+                        o.MinimumBreadcrumbLevel = LogEventLevel.Debug;
+                        // Send logs as event (default is Error)
+                        o.MinimumEventLevel = LogEventLevel.Warning;
 
-                            if (workingData[betTimeStamp].TryGetValue(betInMessage.GameId, out StatisticsUnit? unit))
-                            {
-                                unit.BetCount++;
-                                unit.StakeSum += betInMessage.StakeAmount;
-                                int win = betInMessage.WinAmount ?? 0;
-                                unit.WinSum += win;
-                                if (win > unit.BiggestWin)
-                                {
-                                    unit.BiggestWin = win;
-                                }
-                            } else
-                            {
-                                unit = new()
-                                {
-                                    TimePeriod = betTimeStamp,
-                                    GameId = betInMessage.GameId,
-                                    BetCount = 1,
-                                    StakeSum = betInMessage.StakeAmount,
-                                    WinSum = betInMessage.WinAmount ?? 0,
-                                    BiggestWin = betInMessage.WinAmount ?? 0
-                                };
-                                workingData[betTimeStamp].Add(betInMessage.GameId, unit);
-                            }
-                        }
+                        //o.Debug = true;
 
-                        //Console.WriteLine($"Consumed event {cr.Topic} with key {cr.Message.Key,-10} and value {cr.Message.Value}");
-                        if (loopsCount++ > loopsLimit)
-                        {
-                            Thread.Sleep(1);
-                            loopsCount = 0;
-                        }
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // Ctrl-C was pressed.
-                }
-                finally
-                {
-                    consumer.Close();
-                }
-            }
+                        o.MaxBreadcrumbs = 20; //Be wary of sentry maximum payload size
+                    })
+                    //.Destructure.ByTransforming<Bet>(c => new { c.Id, c.StakeAmount, c.WinAmount, type = "Bet" }) //There's more to this, can use IDestructuringPolicy
+                    .CreateLogger();
+
+
+                //Creating another logger with a context, which will have Properties
+                var testLog = logger.ForContext("MyContextName", new Bet() { StakeAmount = 123 }, true); //Probably not going to use Properties anywhere though.
+                testLog.Information("Look at the properties");
+                testLog.Information("They're still here");
+
+
+                Log.Logger = logger; //Assigning this logger to the static Log class
+
+                //Can also just send one message with properties from the static Log class
+                Log.ForContext<KafkaConsumer>().Information("I have a parameter with my class name!"); //Unnecessary, but can use it to filter log areas
+
+                var consumer = new KafkaConsumer();
+                consumer.StartConsuming();
+
+                //Must flush the static class when console app closes. (If using instanced logger objects (e.g. testLog here), destructor will handle them)
+                Log.CloseAndFlush();
+            //}
         }
 
         private static void WriteStatisticsToDb(long timestamp, ref ConcurrentDictionary<long, Dictionary<int, StatisticsUnit>> data, StatisticsRepository repo)
