@@ -15,7 +15,7 @@ namespace StatisticsAPI
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning) //To hide ASP.NET request logging (Will override with Serilog in line 38)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("type", "statistics-api")
-                .WriteTo.Debug(new CompactJsonFormatter())
+                .WriteTo.Debug()
                 .CreateLogger();
 
             try
