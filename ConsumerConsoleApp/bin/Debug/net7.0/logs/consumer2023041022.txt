@@ -1,4 +1,0 @@
-2023-04-10 22:08:16.978 +03:00 [DBG] Hi, this is a debug string. wow
-2023-04-10 22:08:17.049 +03:00 [ERR] Error! I have logged an error!
-2023-04-10 22:08:17.052 +03:00 [DBG] Debugging an exception what ProducerConsoleApp.Models.Bet, ProducerConsoleApp.Models.Bet
-System.Exception: Big exception
