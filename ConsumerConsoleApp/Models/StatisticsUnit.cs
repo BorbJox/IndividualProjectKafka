@@ -1,5 +1,8 @@
-﻿namespace ProducerConsoleApp.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace ProducerConsoleApp.Models
 {
+    [PrimaryKey(nameof(TimePeriod), nameof(GameId))]
     internal class StatisticsUnit
     {
         public long TimePeriod { get; set; }
