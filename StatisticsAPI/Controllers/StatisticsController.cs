@@ -5,7 +5,7 @@ using StatisticsAPI.Models;
 namespace StatisticsAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     public class StatisticsController : ControllerBase
     {
         readonly ILogger<StatisticsController> _logger;
@@ -17,7 +17,7 @@ namespace StatisticsAPI.Controllers
             _context = context;
         }
 
-        [HttpGet(Name = "GetStatistics")]
+        [HttpGet]
         public IQueryable Get(int from = 0, int to = int.MaxValue, int? gameId = null)
         {
             var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
@@ -37,7 +37,7 @@ namespace StatisticsAPI.Controllers
             });
         }   
 
-        [HttpGet("/biggestWins")]
+        [HttpGet]
         public IEnumerable<MaxWin> BiggestWins(int from = 0, int to = int.MaxValue, int? limit = null)
         {
             var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
@@ -59,7 +59,7 @@ namespace StatisticsAPI.Controllers
             return wins;
         }
 
-        [HttpGet("/mostBets")]
+        [HttpGet]
         public IEnumerable<BetCount> MostBets(int from = 0, int to = int.MaxValue, int? limit = null)
         {
             var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
@@ -81,7 +81,7 @@ namespace StatisticsAPI.Controllers
             return betCount;
         }
 
-        [HttpGet("/totalWin")]
+        [HttpGet]
         public IEnumerable<WinSum> TotalWin(int from = 0, int to = int.MaxValue, int? limit = null)
         {
             var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
