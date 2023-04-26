@@ -1,12 +1,6 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Serilog;
-using Serilog.Context;
 using StatisticsAPI.Data;
 using StatisticsAPI.Models;
-using StatisticsAPI.Services;
-using System.Linq;
 
 namespace StatisticsAPI.Controllers
 {
@@ -15,53 +9,98 @@ namespace StatisticsAPI.Controllers
     public class StatisticsController : ControllerBase
     {
         readonly ILogger<StatisticsController> _logger;
-        readonly IDiagnosticContext _diagnosticContext;
         readonly StatisticsUnitContext _context;
 
-        public StatisticsController(ILogger<StatisticsController> logger, IDiagnosticContext diagnosticContext, StatisticsUnitContext context)
+        public StatisticsController(ILogger<StatisticsController> logger, StatisticsUnitContext context)
         {
             _logger = logger;
-            _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
             _context = context;
         }
 
         [HttpGet(Name = "GetStatistics")]
-        public IQueryable Get(StatisticsUnitContext context)
+        public IQueryable Get(int from = 0, int to = int.MaxValue, int? gameId = null)
         {
-            //Diagnostics are used for adding info to the request log entry ("HTTP GET /blabla.html responded 200 in 11.11 ms")
-            //Will only appear in JSON formats, not the message string
-            _diagnosticContext.Set("Some diagnostic info", new { foo = "bar", interestingNumber = 8 }, true); //true here deconstructs the object (otherwise would call .ToString())
-            _diagnosticContext.Set("UserId", 7896);
+            var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
 
-            using (LogContext.PushProperty("MyDebugObject", new { good = "object" }, true))
-            using (LogContext.PushProperty("OneMore", new { another = "thing" }, true))
+            if (gameId != null)
             {
-                _logger.LogInformation("Logging some info now!");
+                units = units.Where(s => s.GameId == gameId);
             }
-            _logger.LogInformation("I lost my context.. :(");
 
+            return units.GroupBy(s => s.GameId).Select(s => new
+            {
+                GameId = s.Key,
+                SumBets = s.Sum(g => g.BetCount),
+                MaxWin = s.Max(g => g.BiggestWin),
+                SumWins = s.Sum(g => g.WinSum),
+                StatisticsUnitCount = s.Count(),
+            });
+        }   
 
-            var units = _context.StatisticsUnits.Where(s => s.TimePeriod > 1679942618 && s.TimePeriod < 1679942622)
-                    .GroupBy(s => s.GameId)
-                    .Select(s => new
-                    {
-                        s.Key,
-                        SumBets = s.Sum(g => g.BetCount),
-                        MaxWin = s.Max(g => g.BiggestWin),
-                        SumWins = s.Sum(g => g.WinSum),
-                        count = s.Count(),
-                    });
+        [HttpGet("/biggestWins")]
+        public IEnumerable<MaxWin> BiggestWins(int from = 0, int to = int.MaxValue, int? limit = null)
+        {
+            var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
 
-            return units;
+            var wins = units.GroupBy(s => s.GameId)
+                .Select(s => new MaxWin
+                {
+                    GameId = s.Key,
+                    BiggestWin = s.Max(g => g.BiggestWin)
+                })
+                .ToList()
+                .OrderByDescending(s => s.BiggestWin);
 
-            /* TODO: 
-             * 1. Query a period of time
-             * 2. Sum of bets for each game for that time
-             * 3. Max win amount for each game
-             * 4. Sum of amount won for a single game for that time
-             */
+            if (limit != null)
+            {
+                return wins.Skip(0).Take((int)limit);
+            }
 
-            //return "Hey what's up";
+            return wins;
+        }
+
+        [HttpGet("/mostBets")]
+        public IEnumerable<BetCount> MostBets(int from = 0, int to = int.MaxValue, int? limit = null)
+        {
+            var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
+
+            var betCount = units.GroupBy(s => s.GameId)
+                .Select(s => new BetCount
+                {
+                    GameId = s.Key,
+                    TotalBets = s.Sum(g => g.BetCount),
+                })
+                .ToList()
+                .OrderByDescending(s => s.TotalBets);
+
+            if (limit != null)
+            {
+                return betCount.Skip(0).Take((int)limit);
+            }
+
+            return betCount;
+        }
+
+        [HttpGet("/totalWin")]
+        public IEnumerable<WinSum> TotalWin(int from = 0, int to = int.MaxValue, int? limit = null)
+        {
+            var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
+
+            var winSum = units.GroupBy(s => s.GameId)
+                .Select(s => new WinSum
+                {
+                    GameId = s.Key,
+                    Total = s.Sum(g => g.WinSum),
+                })
+                .ToList()
+                .OrderByDescending(s => s.Total);
+
+            if (limit != null)
+            {
+                return winSum.Skip(0).Take((int)limit);
+            }
+
+            return winSum;
         }
     }
 }
