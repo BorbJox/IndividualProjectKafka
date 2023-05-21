@@ -24,72 +24,24 @@ namespace StatisticsAPI.Controllers
         public IEnumerable<StatisticsDisplayUnit> Get(int from = 0, int to = int.MaxValue, int? gameId = null)
         {
             return _service.GetStatisticsForTimePeriod(from, to, gameId);
-        }   
+        }
 
-        //[HttpGet]
-        //public IEnumerable<MaxWin> BiggestWins(int from = 0, int to = int.MaxValue, int? limit = null)
-        //{
-        //    var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
+        [HttpGet]
+        public IEnumerable<MaxWin> GetBiggestWins(int from = 0, int to = int.MaxValue, int? limit = null)
+        {
+            return _service.GetBiggestWins(from, to, limit);
+        }
 
-        //    var wins = units.GroupBy(s => s.GameId)
-        //        .Select(s => new MaxWin
-        //        {
-        //            GameId = s.Key,
-        //            BiggestWin = s.Max(g => g.BiggestWin)
-        //        })
-        //        .ToList()
-        //        .OrderByDescending(s => s.BiggestWin);
+        [HttpGet]
+        public IEnumerable<BetCount> MostBets(int from = 0, int to = int.MaxValue, int? limit = null)
+        {
+            return _service.GetMostBets(from, to, limit);
+        }
 
-        //    if (limit != null)
-        //    {
-        //        return wins.Skip(0).Take((int)limit);
-        //    }
-
-        //    return wins;
-        //}
-
-        //[HttpGet]
-        //public IEnumerable<BetCount> MostBets(int from = 0, int to = int.MaxValue, int? limit = null)
-        //{
-        //    var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
-
-        //    var betCount = units.GroupBy(s => s.GameId)
-        //        .Select(s => new BetCount
-        //        {
-        //            GameId = s.Key,
-        //            TotalBets = s.Sum(g => g.BetCount),
-        //        })
-        //        .ToList()
-        //        .OrderByDescending(s => s.TotalBets);
-
-        //    if (limit != null)
-        //    {
-        //        return betCount.Skip(0).Take((int)limit);
-        //    }
-
-        //    return betCount;
-        //}
-
-        //[HttpGet]
-        //public IEnumerable<WinSum> TotalWin(int from = 0, int to = int.MaxValue, int? limit = null)
-        //{
-        //    var units = _context.StatisticsUnits.Where(s => s.TimePeriod >= from && s.TimePeriod <= to);
-
-        //    var winSum = units.GroupBy(s => s.GameId)
-        //        .Select(s => new WinSum
-        //        {
-        //            GameId = s.Key,
-        //            Total = s.Sum(g => g.WinSum),
-        //        })
-        //        .ToList()
-        //        .OrderByDescending(s => s.Total);
-
-        //    if (limit != null)
-        //    {
-        //        return winSum.Skip(0).Take((int)limit);
-        //    }
-
-        //    return winSum;
-        //}
+        [HttpGet]
+        public IEnumerable<WinSum> TotalWin(int from = 0, int to = int.MaxValue, int? limit = null)
+        {
+            return _service.GetTotalWin(from, to, limit);
+        }
     }
 }

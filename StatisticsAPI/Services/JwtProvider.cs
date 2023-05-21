@@ -13,15 +13,23 @@ namespace StatisticsAPI.Services
 
     public class JwtProvider : IJwtProvider
     {
+        readonly IUserService _userService;
+        public JwtProvider(IUserService userService)
+        {
+            _userService = userService;
+        }
         public string Generate(User user)
         {
             var claims = new Claim[]
             {
-                new Claim(JwtRegisteredClaimNames.Name, user.Name),
+                new Claim("Name", user.Name),
+                new Claim("IsAdmin", user.IsAdmin ? "1" : "0"),
             };
 
+            User? foundUser = _userService.GetByName(user.Name) ?? throw new Exception("No such user");
+
             var signingCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes("adminkeythatsprettylong")),
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(foundUser.APIKey)),
                 SecurityAlgorithms.HmacSha256
             );
 

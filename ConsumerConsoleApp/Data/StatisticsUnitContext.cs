@@ -9,11 +9,5 @@ namespace ProducerConsoleApp.Models
         {
         }
         public DbSet<StatisticsUnit> StatisticsUnits { get; set; }
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    modelBuilder
-        //        .Entity<StatisticsUnit>()
-        //        .HasKey(e => new { e.TimePeriod, e.GameId });
-        //}
     }
 }

@@ -23,17 +23,7 @@ namespace ProducerConsoleApp.Services
 
             List<int> games = new List<int>()
             {
-                100,
-                101,
-                102,
-                103,
-                104,
-                105,
-                106,
-                107,
-                108,
-                109,
-                110
+                100,101,102,103,104,105,106,107,108,109,110
             };
 
             BetGenerator generator = new BetGenerator(0, 100000, 110000, 5000, 1500.0, games);
@@ -67,8 +57,7 @@ namespace ProducerConsoleApp.Services
                                     }
                                 });
 
-                            Task.Run(() => CompleteBetAsync(generator, bet, rnd, producer));
-                            //_ = CompleteBetAsync(generator, bet, rnd, producer);
+                            Task.Run(() => CompleteBetAsync(generator, bet, rnd, producer, _logger));
                         }
                         Thread.Sleep(1);
                     }
@@ -85,7 +74,7 @@ namespace ProducerConsoleApp.Services
             }
         }
 
-        static async Task CompleteBetAsync(BetGenerator generator, Bet bet, Random random, IProducer<string, string> producer)
+        static async Task CompleteBetAsync(BetGenerator generator, Bet bet, Random random, IProducer<string, string> producer, ILogger logger)
         {
             try
             {
@@ -98,18 +87,17 @@ namespace ProducerConsoleApp.Services
                                 {
                                     if (deliveryReport.Error.Code != ErrorCode.NoError)
                                     {
-                                        //For async functions we can create a static class which can be assigned a logger (Like Serilog's Log class)
-                                        Console.WriteLine($"Failed to deliver message: {deliveryReport.Error.Reason}");
+                                        logger.LogError($"Failed to deliver message: {deliveryReport.Error.Reason}");
                                     }
                                     else
                                     {
-                                        //Console.WriteLine($"Completed bet: key = {completedBet.Id,-10} amount = {completedBet.WinAmount}");
+                                        logger.LogDebug($"Completed bet: key = {completedBet.Id,-10} amount = {completedBet.WinAmount}");
                                     }
                                 });
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Failed to settle Bet {bet.Id}: {e}");
+                logger.LogError($"Failed to settle Bet {bet.Id}: {e}");
             }
         }
     }

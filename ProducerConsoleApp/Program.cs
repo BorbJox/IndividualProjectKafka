@@ -1,9 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Confluent.Kafka;
-using ProducerConsoleApp.Services;
-using ProducerConsoleApp.Models;
-using System.Text.Json;
-using System.Diagnostics;
+﻿using ProducerConsoleApp.Services;
 using Microsoft.Extensions.Logging;
 
 namespace ProducerConsoleApp

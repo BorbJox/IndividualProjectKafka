@@ -7,38 +7,38 @@ namespace StatisticsAPI.Services
 {
     public class UserRepository : IUserRepository
     {
-        private readonly AppDbContext appDbContext;
+        private readonly AppDbContext _appDbContext;
 
         public UserRepository(AppDbContext appDbContext)
         {
-            this.appDbContext = appDbContext;
+            _appDbContext = appDbContext;
         }
 
         public async Task<IEnumerable<User>> GetUsers()
         {
-            return await appDbContext.Users.ToListAsync();
+            return await _appDbContext.Users.ToListAsync();
         }
 
-        public async Task<User> GetUser(int userId)
+        public async Task<User?> GetUser(int userId)
         {
-            return await appDbContext.Users.FirstAsync(u => u.Id == userId);
+            return await _appDbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
         }
 
         public async Task<User?> GetUserByName(string name)
         {
-            return await appDbContext.Users.FirstOrDefaultAsync(u => u.Name == name);
+            return await _appDbContext.Users.FirstOrDefaultAsync(u => u.Name == name);
         }
 
         public async Task<User> AddUser(User user)
         {
-            var result = await appDbContext.Users.AddAsync(user);
-            await appDbContext.SaveChangesAsync();
+            var result = await _appDbContext.Users.AddAsync(user);
+            await _appDbContext.SaveChangesAsync();
             return result.Entity;
         }
 
         public async Task<User?> UpdateUser(User user)
         {
-            User? result = await appDbContext.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+            User? result = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
 
             if (result != null)
             {
@@ -47,7 +47,7 @@ namespace StatisticsAPI.Services
                 result.APIKey = user.APIKey;
                 result.IsAdmin = user.IsAdmin;
 
-                await appDbContext.SaveChangesAsync();
+                await _appDbContext.SaveChangesAsync();
 
                 return result;
             }
@@ -57,11 +57,11 @@ namespace StatisticsAPI.Services
 
         public async void DeleteUser(int userId)
         {
-            var result = await GetUser(userId);
+            User? result = await GetUser(userId);
             if (result != null)
             {
-                appDbContext.Users.Remove(result);
-                await appDbContext.SaveChangesAsync();
+                _appDbContext.Users.Remove(result);
+                await _appDbContext.SaveChangesAsync();
             }
         }
     }

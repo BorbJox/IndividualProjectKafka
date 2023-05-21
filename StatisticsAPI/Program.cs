@@ -32,6 +32,11 @@ namespace StatisticsAPI
                 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer();
 
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("AdminOnly", policy =>
+                        policy.RequireClaim("IsAdmin", "1"));
+                });
 
                 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL")));
 

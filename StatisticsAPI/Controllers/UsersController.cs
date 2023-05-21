@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using StatisticsAPI.Models;
 using StatisticsAPI.Services;
 
@@ -38,24 +39,32 @@ namespace StatisticsAPI.Controllers
             return token;
         }
 
-        //// GET: APIKeysController/Details/5
-        //public ActionResult Details(int id)
-        //{
-        //}
+        [HttpGet]
+        public User? GetUser(string name)
+        {
+            return _userService.GetByName(name);
+        }
 
-        //// GET: APIKeysController/Create
-        //public ActionResult Create()
-        //{
-        //}
+        [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
+        public User Create(User user)
+        {
+            return _userService.Write(user);
+        }
 
-        //// GET: APIKeysController/Edit/5
-        //public ActionResult Edit(int id)
-        //{
-        //}
+        [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
+        public User Update(User user)
+        {
+            return _userService.Update(user);
+        }
 
-        //// GET: APIKeysController/Delete/5
-        //public ActionResult Delete(int id)
-        //{
-        //}
+        [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
+        public ActionResult Delete(User user)
+        {
+            _userService.Delete(user);
+            return NoContent();
+        }
     }
 }

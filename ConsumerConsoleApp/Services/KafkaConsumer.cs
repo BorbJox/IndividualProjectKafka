@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using ProducerConsoleApp.Models;
-using Sentry;
 using Serilog;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -13,46 +12,7 @@ namespace ConsumerConsoleApp.Services
     {
         public void StartConsuming()
         {
-            //Things to use...
-            //TODO: User secrets
-            //TODO: Action Filters for API
-            //TODO: Validation using attributes for API
-            //TODO: Benchmark how long it takes to consume https://github.com/dotnet/BenchmarkDotNet
-            //TODO: Simplify Program.cs
-
-            //SqlConnection con = new SqlConnection(configuration.GetConnectionString("MSSQL"));
-
-            //SqlCommand cmd = new SqlCommand("SELECT * FROM [Events]", con);
-            //cmd.CommandType = CommandType.Text;
-            //con.Open();
-            //SqlDataReader rdr = cmd.ExecuteReader();
-
-            //while (rdr.Read())
-            //{
-            //    Console.WriteLine(rdr.GetString("Team1"));
-            //}
-
-            /*
-             * TODO: Pick smallest time resolution (1 second? minute?)
-             * TODO: Maybe get the 10th biggest win for the top 10? What about time resolutions? 
-             * Might need to do it "top 10 this second". Or hour. 
-             * But practically it'll be top 10 today.
-             * 
-             * Gather per game:
-             *     - Bet Count
-             *     - Stake Sum
-             *     - Biggest 10 wins
-             *     - Win Sum
-             *     
-             *     Consider: queue management
-             *     
-             * DB Structure:
-             *    timestamp
-             *    bet count
-             *    stake sum
-             *    win sum
-             * 
-             */
+            
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .Build();
@@ -74,19 +34,6 @@ namespace ConsumerConsoleApp.Services
             var kafkaConfig = configuration.GetSection("KafkaSettings").AsEnumerable(true);
 
             ConcurrentDictionary<long, Dictionary<int, StatisticsUnit>> workingData = new();
-            /*
-             * generate/update StatisticsUnit
-             * when found a bet for a new second, with a delay add the dictionary at the new timestamp to a task to be written
-             * Async write/update to DB what's at the determined timestamp
-             * 
-             * So:
-             * 1. Find a bet for new timestamp
-             * 2. Create a task that will trigger after a delay
-             * 3. It will look at workingData at the given timestamp
-             * 4. It will take it to memory and delete from workingData (use locks, or ConcurrentDictionary)
-             * 5. It will write things to Database on another thread
-             * 
-             */
 
             using (var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build())
             {
@@ -94,7 +41,7 @@ namespace ConsumerConsoleApp.Services
                 consumer.Subscribe(topics);
                 try
                 {
-                    Console.WriteLine("Starting to listen...");
+                    Log.Information("Starting to listen...");
                     while (true)
                     {
                         var cr = consumer.Consume(cts.Token);
@@ -135,7 +82,7 @@ namespace ConsumerConsoleApp.Services
                             }
                         }
 
-                        Console.WriteLine($"Consumed event {cr.Topic} with key {cr.Message.Key,-10} and value {cr.Message.Value}");
+                        Log.Debug($"Consumed event {cr.Topic} with key {cr.Message.Key,-10} and value {cr.Message.Value}");
                         if (loopsCount++ > loopsLimit)
                         {
                             Thread.Sleep(1);
@@ -164,9 +111,8 @@ namespace ConsumerConsoleApp.Services
                     repo.WriteStatisticsUnit(statSet.Value);
                 }
             }
-            //TODO: Put it back if failed to write to DB (rewrite as service)
 
-            Console.Out.WriteLine($"Writing Statistics at timestamp {timestamp} now.");
+            Log.Debug($"Writing Statistics at timestamp {timestamp} now.");
         }
 
         private static async Task DelayAction(Action action)
