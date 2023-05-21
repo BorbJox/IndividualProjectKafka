@@ -1,8 +1,7 @@
 ﻿namespace StatisticsAPI.Models
 {
-    public class StatisticsUnit
+    public class StatisticsDisplayUnit
     {
-        public long TimePeriod { get; set; }
         public int GameId { get; set; }
         public int BetCount { get; set; }
         public int StakeSum { get; set; }

@@ -13,25 +13,6 @@ namespace ConsumerConsoleApp.Services
     {
         public void StartConsuming()
         {
-
-            Log.Debug("Hi, this is a debug string. wow");
-            Log.Error("Error! I have logged an error!");
-
-            try
-            {
-                ExceptionThrower.DoIt();
-            } catch (Exception ex)
-            {
-                Log.Fatal(
-                exception: ex,
-                messageTemplate: "Debugging an exception what {one}, {@two}",
-                new Bet() { StakeAmount = 123 },
-                new Bet() { StakeAmount = 69 }
-                );
-                SentrySdk.CaptureException(ex);
-            }
-
-            
             //Things to use...
             //TODO: User secrets
             //TODO: Action Filters for API
@@ -109,6 +90,7 @@ namespace ConsumerConsoleApp.Services
 
             using (var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build())
             {
+                repository.GetStatisticsUnit(123, 100);
                 consumer.Subscribe(topics);
                 try
                 {
@@ -153,7 +135,7 @@ namespace ConsumerConsoleApp.Services
                             }
                         }
 
-                        //Console.WriteLine($"Consumed event {cr.Topic} with key {cr.Message.Key,-10} and value {cr.Message.Value}");
+                        Console.WriteLine($"Consumed event {cr.Topic} with key {cr.Message.Key,-10} and value {cr.Message.Value}");
                         if (loopsCount++ > loopsLimit)
                         {
                             Thread.Sleep(1);
@@ -189,7 +171,6 @@ namespace ConsumerConsoleApp.Services
 
         private static async Task DelayAction(Action action)
         {
-            await Console.Out.WriteLineAsync("Will wait 2 secs.");
             await Task.Delay(2000);
             Task task = new(action);
             task.Start();

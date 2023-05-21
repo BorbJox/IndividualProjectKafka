@@ -3,13 +3,15 @@ using StatisticsAPI.Models;
 
 namespace StatisticsAPI.Data
 {
-    public class StatisticsUnitContext : DbContext
+    public class AppDbContext : DbContext
     {
-        public StatisticsUnitContext(DbContextOptions<StatisticsUnitContext> options)
-        : base(options)
-        {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) 
+        { 
         }
+
         public DbSet<StatisticsUnit> StatisticsUnits { get; set; }
+        public DbSet<User> Users { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder

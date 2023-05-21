@@ -2,12 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ProducerConsoleApp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ProducerConsoleApp.Services
 {
@@ -53,7 +48,7 @@ namespace ProducerConsoleApp.Services
                 {
                     while (true)
                     {
-                        for (int i = 0; i < 1; i++)
+                        for (int i = 0; i < 20; i++)
                         {
                             Bet bet = generator.GenerateBet();
                             string jsonString = JsonSerializer.Serialize<Bet>(bet);
@@ -75,7 +70,7 @@ namespace ProducerConsoleApp.Services
                             Task.Run(() => CompleteBetAsync(generator, bet, rnd, producer));
                             //_ = CompleteBetAsync(generator, bet, rnd, producer);
                         }
-                        Thread.Sleep(1000);
+                        Thread.Sleep(1);
                     }
                 }
                 catch (OperationCanceledException)

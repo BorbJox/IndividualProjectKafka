@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
-using Serilog.Formatting.Compact;
 using StatisticsAPI.Data;
-using StatisticsAPI.Models;
+using StatisticsAPI.Repositories;
+using StatisticsAPI.Services;
 
 namespace StatisticsAPI
 {
@@ -12,42 +13,34 @@ namespace StatisticsAPI
         public static void Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning) //To hide ASP.NET request logging (Will override with Serilog in line 38)
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning) //To hide ASP.NET request logging
                 .Enrich.FromLogContext()
-                .Enrich.WithProperty("type", "statistics-api")
                 .WriteTo.Debug()
                 .CreateLogger();
 
             try
             {
-                Log.Information("Starting the ASP.NET app!");
-
                 var builder = WebApplication.CreateBuilder(args);
 
-                // Add services to the container.
-                builder.Host.UseSerilog(); //Will override all Logging
+                builder.Host.UseSerilog(); 
 
-                //This is how normally Microsoft would want you to use its ASP.NET Logging:
-                
-                //builder.Logging.AddConsole(); //But this specific line would be pointless, because
-                /* WebApplication.CreateBuilder adds the following logging providers by default:
-                    Console
-                    Debug
-                    EventSource
-                    EventLog: Windows only
-                */
-                //builder.Logging.AddSerilog(); //Would just add Serilog in addition to other logging providers. 
-
-                builder.Services.AddControllers(config =>
-                {
-                    //config.Filters.Add(new TestGlobalActionFilter());
-                });
-                // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+                builder.Services.AddControllers();
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen();
+                builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
 
-                builder.Services.AddDbContext<StatisticsUnitContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL")));
-                builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer();
+
+
+                builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL")));
+
+                builder.Services.AddScoped<IStatisticsUnitRepository, StatisticsUnitRepository>();
+                builder.Services.AddScoped<IUserRepository, UserRepository>();
+                builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+                builder.Services.AddScoped<IUserService, UserService>();
+                builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+                builder.Services.AddSingleton<DynamicJwtValidationHandler>();
 
                 var app = builder.Build();
 
@@ -63,8 +56,8 @@ namespace StatisticsAPI
 
                 app.UseHttpsRedirection();
 
+                app.UseAuthentication();
                 app.UseAuthorization();
-
 
                 app.MapControllers();
 

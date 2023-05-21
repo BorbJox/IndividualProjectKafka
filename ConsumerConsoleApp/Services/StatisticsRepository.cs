@@ -11,17 +11,6 @@ namespace ConsumerConsoleApp.Services
 {
     internal class StatisticsRepository
     {
-        //SqlConnection con = new SqlConnection(configuration.GetConnectionString("MSSQL"));
-
-        //SqlCommand cmd = new SqlCommand("SELECT * FROM [Events]", con);
-        //cmd.CommandType = CommandType.Text;
-        //con.Open();
-        //SqlDataReader rdr = cmd.ExecuteReader();
-
-        //while (rdr.Read())
-        //{
-        //    Console.WriteLine(rdr.GetString("Team1"));
-        //}
         private readonly DbContextOptions<StatisticsUnitContext> _options;
 
         public StatisticsRepository(string connectionString)
